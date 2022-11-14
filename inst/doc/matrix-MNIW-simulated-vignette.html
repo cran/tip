@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>matrix-clustering-MNIW-vignette</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">matrix-clustering-MNIW-vignette</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tip)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># A function to generate random matrices from a matrix normal distribution </span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>random_mat_normal <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, num_rows, num_cols){</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  LaplacesDemon<span class="sc">::</span><span class="fu">rmatrixnorm</span>(<span class="at">M =</span> <span class="fu">matrix</span>(mu, </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">nrow =</span> num_rows, </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">ncol =</span> num_cols), </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">U =</span> <span class="fu">diag</span>(num_rows), </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                           <span class="at">V =</span> <span class="fu">diag</span>(num_cols))</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate 3 clusters of matrices </span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>c1 <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(x) <span class="fu">random_mat_normal</span>(<span class="at">mu =</span> <span class="dv">0</span>, <span class="at">num_rows =</span> m, <span class="at">num_cols =</span> p))</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>c2 <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(x) <span class="fu">random_mat_normal</span>(<span class="at">mu =</span> <span class="dv">5</span>, <span class="at">num_rows =</span> m, <span class="at">num_cols =</span> p))</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>c3 <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(x) <span class="fu">random_mat_normal</span>(<span class="at">mu =</span> <span class="sc">-</span><span class="dv">5</span>, <span class="at">num_rows =</span> m, <span class="at">num_cols =</span> p))</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Put all the data into a list</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>data_list <span class="ot">&lt;-</span> <span class="fu">c</span>(c1,c2,c3)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a vector of true labels. True labels are only necessary </span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co"># for constructing network graphs that incorporate the true labels;</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co"># this is often useful for research. </span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>true_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;Cluster 1&quot;</span>, <span class="fu">length</span>(c1)),</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">rep</span>(<span class="st">&quot;Cluster 2&quot;</span>, <span class="fu">length</span>(c2)),</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">rep</span>(<span class="st">&quot;Cluster 3&quot;</span>, <span class="fu">length</span>(c3)))</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>distance_matrix <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>                          <span class="at">nrow =</span> <span class="fu">length</span>(true_labels),</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>                          <span class="at">ncol =</span> <span class="fu">length</span>(true_labels))</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Distance matrix </span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(true_labels)){</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> i<span class="sc">:</span><span class="fu">length</span>(true_labels)){</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    distance_matrix[i,j] <span class="ot">&lt;-</span> SMFilter<span class="sc">::</span><span class="fu">FDist2</span>(<span class="at">mX =</span> data_list[[i]],</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>                                             <span class="at">mY =</span> data_list[[j]])</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    distance_matrix[j,i] <span class="ot">&lt;-</span> distance_matrix[i,j]</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the temperature parameter estiamte</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>temperature <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span><span class="fu">median</span>(distance_matrix[<span class="fu">upper.tri</span>(distance_matrix)])</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="co"># For each subject, compute the point estimate for the number of similar </span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="co"># subjects using  univariate multiple change point detection (i.e.)</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>init_num_neighbors <span class="ot">=</span> <span class="fu">get_cpt_neighbors</span>(<span class="at">.distance_matrix =</span> distance_matrix)</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in BINSEG(sumstat, pen = pen.value, cost_func = costfunc, minseglen</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; = minseglen, : The number of changepoints identified is Q, it is advised to</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; increase Q to make sure changepoints have not been missed.</span></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="co"># Set the number of burn-in iterations in the Gibbs samlper</span></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a><span class="co"># RECOMMENDATION: burn &gt;= 1000</span></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>burn <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="co"># Set the number of sampling iterations in the Gibbs sampler</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a><span class="co"># RECOMMENDATION: samples &gt;= 1000</span></span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="co"># Set the subject names</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a>names_subjects <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(distance_matrix)[<span class="dv">1</span>])</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a><span class="co"># Run TIP clustering using only the prior</span></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="co"># --&gt; That is, the likelihood function is constant</span></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>tip1 <span class="ot">&lt;-</span> <span class="fu">tip</span>(<span class="at">.data =</span> data_list,</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>            <span class="at">.burn =</span> burn,</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>            <span class="at">.samples =</span> samples,</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>            <span class="at">.similarity_matrix =</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">1.0</span><span class="sc">*</span>temperature<span class="sc">*</span>distance_matrix),</span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>            <span class="at">.init_num_neighbors =</span> init_num_neighbors,</span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>            <span class="at">.likelihood_model =</span> <span class="st">&quot;MNIW&quot;</span>,</span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>            <span class="at">.subject_names =</span> names_subjects,</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>            <span class="at">.num_cores =</span> <span class="dv">1</span>)</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Bayesian Clustering: Table Invitation Prior Gibbs Sampler</span></span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; burn-in: 10</span></span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; samples: 10</span></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Likelihood Model: MNIW</span></span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a>  <span class="er">|</span>                                                                      <span class="er">|</span>   <span class="dv">0</span>%</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>  <span class="er">|====</span>                                                                  <span class="er">|</span>   <span class="dv">6</span>%</span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>  <span class="er">|========</span>                                                              <span class="er">|</span>  <span class="dv">11</span>%</span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>  <span class="er">|============</span>                                                          <span class="er">|</span>  <span class="dv">17</span>%</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a>  <span class="er">|================</span>                                                      <span class="er">|</span>  <span class="dv">22</span>%</span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===================</span>                                                   <span class="er">|</span>  <span class="dv">28</span>%</span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>  <span class="er">|=======================</span>                                               <span class="er">|</span>  <span class="dv">33</span>%</span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===========================</span>                                           <span class="er">|</span>  <span class="dv">39</span>%</span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===============================</span>                                       <span class="er">|</span>  <span class="dv">44</span>%</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===================================</span>                                   <span class="er">|</span>  <span class="dv">50</span>%</span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>  <span class="er">|=======================================</span>                               <span class="er">|</span>  <span class="dv">56</span>%</span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===========================================</span>                           <span class="er">|</span>  <span class="dv">61</span>%</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===============================================</span>                       <span class="er">|</span>  <span class="dv">67</span>%</span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>  <span class="er">|===================================================</span>                   <span class="er">|</span>  <span class="dv">72</span>%</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>  <span class="er">|======================================================</span>                <span class="er">|</span>  <span class="dv">78</span>%</span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>  <span class="er">|==========================================================</span>            <span class="er">|</span>  <span class="dv">83</span>%</span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>  <span class="er">|==============================================================</span>        <span class="er">|</span>  <span class="dv">89</span>%</span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>  <span class="er">|==================================================================</span>    <span class="er">|</span>  <span class="dv">94</span>%</span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>  <span class="er">|======================================================================|</span> <span class="dv">100</span>%</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Produce plots for the Bayesian Clustering Model</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tip_plots <span class="ot">&lt;-</span> <span class="fu">plot</span>(tip1)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View the posterior distribution of the number of clusters</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>tip_plots<span class="sc">$</span>histogram_posterior_number_of_clusters</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View the trace plot with respect to the posterior number of clusters</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tip_plots<span class="sc">$</span>trace_plot_posterior_number_of_clusters</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract posterior cluster assignments using the Posterior Expected Adjusted Rand (PEAR) index</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>cluster_assignments <span class="ot">&lt;-</span> mcclust<span class="sc">::</span><span class="fu">maxpear</span>(<span class="at">psm =</span> tip1<span class="sc">@</span>posterior_similarity_matrix)<span class="sc">$</span>cl</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># If the true labels are available, then show the cluster result via a contigency table</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">data.frame</span>(<span class="at">true_label =</span> true_labels,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">cluster_assignment =</span> cluster_assignments))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            cluster_assignment</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; true_label   1  2  3</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Cluster 1 10  0  0</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Cluster 2  0 10  0</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Cluster 3  0  0 10</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the one component graph with minimum entropy</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>partition_list <span class="ot">&lt;-</span> <span class="fu">partition_undirected_graph</span>(<span class="at">.graph_matrix =</span> tip1<span class="sc">@</span>posterior_similarity_matrix,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                                             <span class="at">.num_components =</span> <span class="dv">1</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                                             <span class="at">.step_size =</span> <span class="fl">0.001</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Associate class labels and colors for the plot</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>class_palette_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Cluster 1&quot;</span> <span class="ot">=</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;Cluster 2&quot;</span> <span class="ot">=</span> <span class="st">&#39;green&#39;</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;Cluster 3&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Associate class labels and shapes for the plot</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>class_palette_shapes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Cluster 1&quot;</span> <span class="ot">=</span> <span class="dv">19</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;Cluster 2&quot;</span> <span class="ot">=</span> <span class="dv">18</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;Cluster 3&quot;</span> <span class="ot">=</span> <span class="dv">17</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the posterior similarity matrix by constructing a graph plot of </span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># the one-cluster graph. The true labels are used here (below they are not).</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggnet2_network_plot</span>(<span class="at">.matrix_graph =</span> partition_list<span class="sc">$</span>partitioned_graph_matrix,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">.subject_names =</span> <span class="cn">NA</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">.subject_class_names =</span> true_labels,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">.class_colors =</span> class_palette_colors,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">.class_shapes =</span> class_palette_shapes,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">.node_size =</span> <span class="dv">2</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                <span class="at">.add_node_labels =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning: Duplicated override.aes is ignored.</span></span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># If true labels are not available, then construct a network plot</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># of the one-cluster graph without any class labels.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Note: Subject labels may be suppressed using .add_node_labels = FALSE.  </span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggnet2_network_plot</span>(<span class="at">.matrix_graph =</span> partition_list<span class="sc">$</span>partitioned_graph_matrix,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">.subject_names =</span> names_subjects,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">.node_size =</span> <span class="dv">2</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">.add_node_labels =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
